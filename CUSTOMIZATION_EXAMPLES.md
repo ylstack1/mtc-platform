@@ -1,99 +1,84 @@
 # Template Customization Examples
 
-## Quick Examples for Common Customizations
+## Recommended Method: Using Theme Config
 
-### Example 1: Corporate Blue Theme
+The standard way to customize the theme is by modifying the `ThemeConfig` object in `src/theme.ts` or by creating a new config object and passing it to `getThemeCSS`.
 
-\`\`\`typescript
-const customThemeCSS = \`
+### Example 1: Corporate Blue Theme (Dual Mode)
+
+This example shows how to configure both dark and light palettes for a corporate identity.
+
+```typescript
+import { modernDarkTheme, getThemeCSS, ThemeConfig } from '@ylstack-dev/cf-cms-template-modern-dark'
+
+const corporateTheme: ThemeConfig = {
+  ...modernDarkTheme,
+  palettes: {
+    dark: {
+      ...modernDarkTheme.palettes.dark,
+      primary: '#0066cc',
+      primaryDark: '#004c99',
+      secondary: '#00ccff',
+      background: '#001f3f',
+      surface: '#003366',
+    },
+    light: {
+      ...modernDarkTheme.palettes.light,
+      primary: '#0055aa',
+      primaryDark: '#003366',
+      secondary: '#00aaff',
+      background: '#f0f4f8',
+      surface: '#ffffff',
+    }
+  },
+  gradients: {
+    ...modernDarkTheme.gradients,
+    primary: 'linear-gradient(135deg, #0066cc, #00ccff)',
+  }
+}
+
+export function getCustomThemeCSS() {
+  return getThemeCSS(corporateTheme)
+}
+```
+
+## Advanced Method: Raw CSS Injection
+
+For more specific overrides that go beyond the token system, you can inject raw CSS. Note that you should use the new CSS variables and handle both theme modes.
+
+### Example 2: Custom Glassmorphism
+
+Override the default card styles to have a stronger glass effect.
+
+```typescript
+const customThemeCSS = `
   <style>
-    /* Corporate Blue Theme */
-    body {
-      background: #003366 !important;
+    /* Stronger Glass Effect */
+    :root {
+      --glass-opacity: 0.8;
+      --glass-blur: 20px;
     }
-    
-    .dark\\:bg-zinc-900 {
-      background: #003366 !important;
+
+    .card {
+      background: rgba(30, 41, 59, var(--glass-opacity)) !important;
+      backdrop-filter: blur(var(--glass-blur)) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
     }
-    
-    nav[aria-label="Sidebar"] {
-      background: linear-gradient(180deg, #002244 0%, #003366 100%) !important;
-    }
-    
-    .bg-zinc-950 {
-      background: #0066cc !important;
-    }
-    
-    .dark\\:text-white {
-      color: #e6f2ff !important;
+
+    [data-theme="light"] .card {
+      background: rgba(255, 255, 255, var(--glass-opacity)) !important;
+      border: 1px solid rgba(0,0,0,0.05) !important;
     }
   </style>
-\`
-\`\`\`
+`
+```
 
-### Example 2: Dark Purple Theme
+### Example 3: Hide Specific Menu Items
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Dark Purple Theme */
-    body {
-      background: #1a0033 !important;
-    }
-    
-    .dark\\:bg-zinc-900 {
-      background: #1a0033 !important;
-    }
-    
-    nav[aria-label="Sidebar"] {
-      background: linear-gradient(180deg, #2d0052 0%, #4a0080 100%) !important;
-    }
-    
-    .bg-zinc-950 {
-      background: #7b2cbf !important;
-    }
-  </style>
-\`
-\`\`\`
+This remains largely the same, as it targets elements by attributes.
 
-### Example 3: Minimal Light Theme
-
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Minimal Light Theme */
-    html {
-      color-scheme: light !important;
-    }
-    
-    body {
-      background: #ffffff !important;
-    }
-    
-    .dark\\:bg-zinc-900 {
-      background: #f5f5f5 !important;
-    }
-    
-    nav[aria-label="Sidebar"] {
-      background: #ffffff !important;
-      border-right: 1px solid #e0e0e0 !important;
-    }
-    
-    .dark\\:text-white {
-      color: #333333 !important;
-    }
-    
-    .dark\\:text-zinc-400 {
-      color: #666666 !important;
-    }
-  </style>
-\`
-\`\`\`
-
-### Example 4: Hide Specific Menu Items
-
-\`\`\`typescript
-const customThemeCSS = \`
+```typescript
+const customThemeCSS = `
   <style>
     /* Hide Community Plugins */
     a[href="/admin/community-plugins"] {
@@ -105,144 +90,15 @@ const customThemeCSS = \`
       display: none !important;
     }
   </style>
-\`
-\`\`\`
+`
+```
 
-### Example 5: Custom Branding
+### Example 4: Animated Gradient Background
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Replace logo text */
-    .sidebar-logo-text {
-      font-size: 0 !important;
-    }
-    
-    .sidebar-logo-text::after {
-      content: "My Company CMS" !important;
-      font-size: 1.125rem !important;
-    }
-    
-    /* Custom footer */
-    .footer {
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
-      color: white !important;
-    }
-  </style>
-\`
-\`\`\`
+You can override the `--gradient-body` variable to add animation.
 
-### Example 6: Larger Sidebar
-
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Wider sidebar */
-    nav[aria-label="Sidebar"] {
-      width: 320px !important;
-    }
-    
-    /* Adjust main content */
-    .main-content {
-      margin-left: 320px !important;
-    }
-    
-    @media (max-width: 1024px) {
-      nav[aria-label="Sidebar"] {
-        width: 260px !important;
-      }
-      
-      .main-content {
-        margin-left: 260px !important;
-      }
-    }
-  </style>
-\`
-\`\`\`
-
-### Example 7: Compact Mode
-
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Reduce padding everywhere */
-    .p-4 {
-      padding: 0.75rem !important;
-    }
-    
-    .p-6 {
-      padding: 1rem !important;
-    }
-    
-    /* Smaller text */
-    body {
-      font-size: 13px !important;
-    }
-    
-    /* Compact sidebar */
-    .nav-item {
-      padding: 0.5rem 0.75rem !important;
-    }
-  </style>
-\`
-\`\`\`
-
-### Example 8: High Contrast Theme
-
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* High Contrast for Accessibility */
-    body {
-      background: #000000 !important;
-    }
-    
-    .dark\\:bg-zinc-900 {
-      background: #000000 !important;
-    }
-    
-    .dark\\:text-white {
-      color: #ffffff !important;
-      font-weight: 600 !important;
-    }
-    
-    .dark\\:border-white\\/5 {
-      border-color: #ffffff !important;
-    }
-    
-    /* High contrast buttons */
-    .bg-zinc-950 {
-      background: #ffff00 !important;
-      color: #000000 !important;
-    }
-  </style>
-\`
-\`\`\`
-
-### Example 9: Glassmorphism Effect
-
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Glassmorphism */
-    nav[aria-label="Sidebar"] {
-      background: rgba(255, 255, 255, 0.1) !important;
-      backdrop-filter: blur(10px) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-    }
-    
-    .dark\\:bg-zinc-800 {
-      background: rgba(255, 255, 255, 0.05) !important;
-      backdrop-filter: blur(10px) !important;
-    }
-  </style>
-\`
-\`\`\`
-
-### Example 10: Animated Gradient Background
-
-\`\`\`typescript
-const customThemeCSS = \`
+```typescript
+const customThemeCSS = `
   <style>
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -250,29 +106,90 @@ const customThemeCSS = \`
       100% { background-position: 0% 50%; }
     }
     
+    :root {
+      --gradient-body: linear-gradient(270deg, #0c4a6e, #075985, #0369a1);
+    }
+
     body {
-      background: linear-gradient(270deg, #0c4a6e, #075985, #0369a1) !important;
       background-size: 600% 600% !important;
       animation: gradientShift 15s ease infinite !important;
     }
   </style>
-\`
-\`\`\`
+`
+```
+
+### Example 5: Custom Branding in Sidebar
+
+Customize the logo text using pseudo-elements.
+
+```typescript
+const customThemeCSS = `
+  <style>
+    /* Replace logo text */
+    .sidebar-logo-text {
+      visibility: hidden;
+      position: relative;
+    }
+    
+    .sidebar-logo-text::after {
+      content: "My Company CMS";
+      visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+  </style>
+`
+```
+
+### Example 6: High Contrast Accessibility Theme
+
+Force high contrast colors regardless of theme mode for accessibility.
+
+```typescript
+const customThemeCSS = `
+  <style>
+    /* High Contrast Overrides */
+    :root {
+      --color-background: #000000 !important;
+      --color-surface: #000000 !important;
+      --color-text: #ffffff !important;
+      --color-primary: #ffff00 !important;
+      --color-secondary: #00ffff !important;
+      --color-border: #ffffff !important;
+    }
+    
+    [data-theme="light"] {
+      --color-background: #ffffff !important;
+      --color-surface: #ffffff !important;
+      --color-text: #000000 !important;
+      --color-primary: #0000cc !important;
+      --color-border: #000000 !important;
+    }
+    
+    .card {
+      border: 2px solid var(--color-border) !important;
+      background: var(--color-background) !important;
+    }
+  </style>
+`
+```
 
 ## Testing Your Customizations
 
 After making changes:
 
-1. **Build template**: \`cd packages/template-modern-dark && npm run build\`
-2. **Restart dev server**: \`npm run dev\`
-3. **Test all pages**: Dashboard, Collections, Content, Media, Users, Plugins
-4. **Test responsive**: Mobile, tablet, desktop
-5. **Test functionality**: All buttons, forms, and features work
+1. **Build template**: `cd packages/template-modern-dark && npm run build`
+2. **Restart dev server**: `npm run dev`
+3. **Toggle Themes**: Use the sun/moon icon to switch between light and dark modes.
+4. **Test Responsive**: Check mobile sidebar and grid layouts.
+5. **Verify Contrast**: Ensure text is readable in both modes.
 
 ## Tips
 
-- Use browser DevTools to inspect elements and find class names
-- Test with hard refresh (Ctrl+Shift+R) to clear cache
-- Check console for \`[TEMPLATE] CSS injected successfully\`
-- Start with small changes and test incrementally
-- Keep a backup of working CSS before major changes
+- **Use Variables**: Always rely on `var(--color-...)` variables when writing custom CSS. This ensures your overrides respect the theme toggle.
+- **Inspect Elements**: Use browser DevTools to see which variables are being applied.
+- **Scope Styles**: If you only want to affect a specific page, try to scope your CSS selectors (e.g., `.page-dashboard .card`).

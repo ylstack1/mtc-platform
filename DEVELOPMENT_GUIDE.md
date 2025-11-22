@@ -2,397 +2,224 @@
 
 ## Overview
 
-This guide explains how to customize the CF-CMS admin panel frontend using templates. Templates allow you to change colors, layout, styling, and UI elements **without affecting backend logic**.
+This guide explains how to customize the CF-CMS admin panel frontend using the Dual Theme template system. The architecture isolates the frontend from backend logic, allowing you to completely restyle the admin interface without risk of breaking core functionality.
 
 ## ✅ What You CAN Customize
 
 ### Frontend Only (Safe to Change)
-- ✅ **Colors** - Background, text, borders, buttons
-- ✅ **Fonts** - Typography, sizes, weights
-- ✅ **Layout** - Sidebar width, spacing, positioning
-- ✅ **Styling** - CSS classes, animations, effects
-- ✅ **UI Elements** - Hide/show components, reorder items
-- ✅ **Icons** - Change icons, add custom SVGs
-- ✅ **Branding** - Logo, app name, footer text
+- ✅ **Theme Palettes** - Dark and light mode colors
+- ✅ **Gradients** - Background and interactive element gradients
+- ✅ **Layout Utilities** - Responsive grids, spacing, and container widths
+- ✅ **Components** - Add or modify UI components (charts, stats, lists)
+- ✅ **Styling** - Global CSS variables and glassmorphism effects
+- ✅ **Branding** - Logos, watermarks, and footer text
 
 ### Backend (DO NOT Change)
 - ❌ **Routes** - API endpoints, route handlers
 - ❌ **Data Structure** - Database schema, data models
 - ❌ **Business Logic** - Authentication, permissions, validation
-- ❌ **Functionality** - CRUD operations, file uploads, etc.
+- ❌ **Functionality** - CRUD operations, file uploads
 
 ## 📁 Template Structure
 
-\`\`\`
+```
 packages/template-modern-dark/
 ├── src/
 │   ├── layouts/
-│   │   └── admin-layout.ts          # Main layout with CSS injection
+│   │   └── admin-layout.ts          # Main layout wrapper
 │   ├── pages/
-│   │   └── admin-dashboard.ts       # Page-specific templates (optional)
-│   ├── components/
-│   │   └── logo.template.ts         # Reusable components
-│   ├── theme.ts                     # Theme configuration
+│   │   └── admin-dashboard.ts       # Dashboard composition
+│   ├── components/                  # UI Components
+│   │   ├── actions.ts               # Quick actions grid
+│   │   ├── activity.ts              # Activity feed
+│   │   ├── analytics.ts             # Charts and graphs
+│   │   ├── metrics.ts               # Key metrics stats
+│   │   └── logo.template.ts         # Branding
+│   ├── theme.ts                     # Dual-theme configuration & CSS generation
 │   └── index.ts                     # Package exports
 ├── package.json
 ├── tsconfig.json
 ├── tsup.config.ts
 └── README.md
-\`\`\`
+```
 
 ## 🎨 How Templates Work
 
 ### 1. Template is Loaded
-\`\`\`typescript
+```typescript
 // starter-app/src/index.ts
-import * as modernDarkTemplate from '@ylstack-dev/cf-cms-template-modern-dark'
+import * as template from '@ylstack-dev/cf-cms-template-modern-dark'
 
 const bindings = {
-  TEMPLATE_PROVIDER: modernDarkTemplate  // ← Template loaded here
+  TEMPLATE_PROVIDER: template  // ← Template loaded here
 }
-\`\`\`
+```
 
 ### 2. Middleware Intercepts Pages
-\`\`\`typescript
-// packages/core/src/middleware/admin-layout-middleware.ts
-const templateProvider = c.env.TEMPLATE_PROVIDER
+The core CMS middleware checks for a `TEMPLATE_PROVIDER` and delegates rendering to it.
 
-if (templateProvider) {
-  // Call template's renderAdminLayout function
-  const modifiedHtml = templateProvider.renderAdminLayout({
-    _fullHtml: originalHtml  // Pass full HTML to template
-  })
-}
-\`\`\`
+### 3. Template Injects Custom CSS & JS
+The layout function injects the CSS generated from `theme.ts` and the theme toggle logic.
 
-### 3. Template Injects Custom CSS
-\`\`\`typescript
+```typescript
 // packages/template-modern-dark/src/layouts/admin-layout.ts
 export function renderAdminLayout(data: AdminLayoutData & { _fullHtml?: string }): string {
-  if (data._fullHtml) {
-    // Inject custom CSS into existing HTML
-    const modifiedHtml = data._fullHtml.replace(
-      '<script src="https://unpkg.com/htmx.org@2.0.3"></script>',
-      \`\${customThemeCSS}\\n  <script src="https://unpkg.com/htmx.org@2.0.3"></script>\`
-    )
-    return modifiedHtml
-  }
+  // Uses getThemeCSS() from theme.ts to generate CSS variables
+  const css = getThemeCSS()
+  
+  // Injects CSS and theme toggle script into the HTML
+  // ...
 }
-\`\`\`
+```
 
 ## 🎯 Customization Guide
 
-### Change Colors
+### Configuring the Dual Theme
 
-Edit \`src/layouts/admin-layout.ts\`:
+The `theme.ts` file exports a `ThemeConfig` object that controls both dark and light modes.
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Change background colors */
-    body {
-      background: #YOUR_COLOR !important;
+```typescript
+// src/theme.ts
+export const modernDarkTheme: ThemeConfig = {
+  palettes: {
+    dark: {
+      primary: '#3b82f6',
+      background: '#0f172a',
+      // ...
+    },
+    light: {
+      primary: '#2563eb',
+      background: '#f8fafc',
+      // ...
     }
-    
-    .dark\\\\:bg-zinc-900 {
-      background: #YOUR_COLOR !important;
-    }
-    
-    /* Change sidebar colors */
-    nav[aria-label="Sidebar"] {
-      background: linear-gradient(180deg, #COLOR1 0%, #COLOR2 100%) !important;
-    }
-    
-    /* Change button colors */
-    .bg-zinc-950 {
-      background: #YOUR_ACCENT !important;
-    }
-    
-    /* Change text colors */
-    .dark\\\\:text-white {
-      color: #YOUR_TEXT_COLOR !important;
-    }
-  </style>
-\`
-\`\`\`
+  },
+  gradients: {
+    primary: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+    surface: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0))',
+  },
+  // ... typography, spacing, elevations
+}
+```
 
-### Change Fonts
+### Customizing Gradients
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Your+Font:wght@400;600;700&display=swap');
-    
-    body {
-      font-family: 'Your Font', system-ui, sans-serif !important;
-    }
-    
-    h1, h2, h3 {
-      font-family: 'Your Font', sans-serif !important;
-    }
-  </style>
-\`
-\`\`\`
+Gradients are defined as CSS variables that can reference palette colors.
 
-### Change Layout
+- **Primary Gradient**: Used on buttons and active states.
+- **Body Gradient**: An ambient background gradient (radial) that shifts slightly.
+- **Surface Gradient**: Used on glassmorphism cards.
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Change sidebar width */
-    .sidebar {
-      width: 300px !important;  /* Default: 260px */
-    }
-    
-    /* Change spacing */
-    .content {
-      padding: 2rem !important;  /* Default: 1.5rem */
-    }
-    
-    /* Change border radius */
-    .rounded-lg {
-      border-radius: 1rem !important;  /* Default: 0.5rem */
-    }
-  </style>
-\`
-\`\`\`
+```typescript
+gradients: {
+  primary: 'linear-gradient(to right, #ff00cc, #333399)',
+  // ...
+}
+```
 
-### Hide/Show Elements
+### Responsive Layout Utilities
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Hide specific menu items */
-    a[href="/admin/community-plugins"] {
-      display: none !important;
-    }
-    
-    /* Hide footer */
-    .footer {
-      display: none !important;
-    }
-    
-    /* Show/hide on mobile */
-    @media (max-width: 768px) {
-      .user-info {
-        display: block !important;  /* Show on mobile */
-      }
-    }
-  </style>
-\`
-\`\`\`
+The theme includes a grid system that adapts to screen sizes.
 
-### Add Custom Branding
+- `.grid-2`: 2 columns on desktop, 1 on mobile.
+- `.grid-3`: 3 columns on desktop, 1 on mobile.
+- `.grid-4`: 4 columns on desktop, 1 on mobile.
 
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Custom logo */
-    .sidebar-logo-text::before {
-      content: "Your Brand" !important;
-    }
-    
-    /* Custom footer */
-    .footer::after {
-      content: " | Powered by Your Company";
-    }
-    
-    /* Add watermark */
-    body::after {
-      content: "Your Brand";
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      opacity: 0.3;
-      font-size: 12px;
-    }
-  </style>
-\`
-\`\`\`
+Use these classes in your custom pages or extended components.
+
+```html
+<div class="grid grid-3">
+  <div class="card p-6">Stat 1</div>
+  <div class="card p-6">Stat 2</div>
+  <div class="card p-6">Stat 3</div>
+</div>
+```
+
+### Composing the Dashboard
+
+The dashboard is built by composing smaller components found in `src/components/`. You can rearrange these or add your own in `src/pages/admin-dashboard.ts`.
+
+```typescript
+// src/pages/admin-dashboard.ts
+export function renderDashboard(data: any): string {
+  return `
+    <div class="container mx-auto py-8">
+      ${renderMetrics(data)}
+      <div class="grid grid-2 mt-8">
+        ${renderAnalytics(data)}
+        ${renderActivity(data)}
+      </div>
+    </div>
+  `
+}
+```
 
 ## 🔧 Development Workflow
 
 ### 1. Make Changes
-Edit files in \`packages/template-modern-dark/src/\`
+Edit files in `packages/template-modern-dark/src/`
 
 ### 2. Build Template
-\`\`\`bash
+```bash
 cd packages/template-modern-dark
 npm run build
-\`\`\`
+```
 
 ### 3. Rebuild Core (if needed)
-\`\`\`bash
+```bash
 npm run build:core
-\`\`\`
+```
 
 ### 4. Test Changes
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-Visit \`http://localhost:8787/admin\` to see changes
+Visit `http://localhost:8787/admin` to see changes. Toggle between dark and light modes to ensure your changes work in both contexts.
 
-### 5. Debug
-Check browser console for:
-- \`[TEMPLATE] Modern Dark template renderAdminLayout called\`
-- \`[TEMPLATE] CSS injected successfully\`
+## 📋 CSS Variable Reference
 
-## 📋 CSS Class Reference
+The theme generates CSS variables mapped to the current mode (dark/light).
 
-### Tailwind Classes Used
+### Colors
+- `--color-primary`
+- `--color-background`
+- `--color-surface`
+- `--color-text`
+- `--color-border`
 
-#### Background Colors
-- \`bg-white\` / \`dark:bg-zinc-900\` - Main background
-- \`dark:bg-zinc-800\` - Cards and panels
-- \`dark:bg-zinc-700\` - Hover states
+### Gradients
+- `--gradient-primary`
+- `--gradient-body`
+- `--gradient-surface`
 
-#### Text Colors
-- \`text-zinc-950\` / \`dark:text-white\` - Primary text
-- \`text-zinc-500\` / \`dark:text-zinc-400\` - Secondary text
-- \`text-zinc-400\` / \`dark:text-zinc-500\` - Muted text
-
-#### Borders
-- \`border-zinc-950/5\` / \`dark:border-white/5\` - Light borders
-- \`ring-zinc-950/5\` / \`dark:ring-white/10\` - Focus rings
-
-#### Spacing
-- \`p-4\` - Padding (1rem)
-- \`gap-4\` - Gap between elements (1rem)
-- \`space-y-4\` - Vertical spacing (1rem)
-
-#### Layout
-- \`flex\` - Flexbox layout
-- \`grid\` - Grid layout
-- \`rounded-lg\` - Border radius (0.5rem)
-
-### Custom Classes
-
-#### Sidebar
-- \`.sidebar\` - Main sidebar container
-- \`.sidebar-logo\` - Logo area
-- \`.sidebar-nav\` - Navigation container
-- \`.nav-item\` - Navigation link
-- \`.nav-item.active\` - Active navigation link
-
-#### Content
-- \`.main-content\` - Main content area
-- \`.content\` - Content wrapper
-- \`.header\` - Page header
-- \`.footer\` - Page footer
+### Spacing & Typography
+- `--spacing-md` (16px)
+- `--font-size-base` (16px)
+- `--font-family`
 
 ## ⚠️ Important Rules
 
 ### DO's ✅
-1. **Use \`!important\`** - Override Tailwind classes
-   \`\`\`css
-   body { background: #000 !important; }
-   \`\`\`
-
-2. **Escape Tailwind Classes** - Use double backslash
-   \`\`\`css
-   .dark\\\\:bg-zinc-900 { background: #000 !important; }
-   \`\`\`
-
-3. **Test on All Pages** - Dashboard, Collections, Content, etc.
-
-4. **Test Responsive** - Mobile, tablet, desktop
-
-5. **Keep Backend Intact** - Only modify CSS, not HTML structure
+1. **Use CSS Variables** - Instead of hardcoded hex values, use `var(--color-primary)` so your styles adapt to theme changes.
+2. **Test Both Modes** - Always check your changes in both light and dark modes.
+3. **Use Grid Classes** - Utilize `.grid-2`, `.grid-3` for consistent responsive layouts.
+4. **Keep Backend Intact** - Only modify CSS and template strings.
 
 ### DON'Ts ❌
-1. **Don't Modify Core Files** - Only edit template package
-2. **Don't Change HTML Structure** - Only inject CSS
-3. **Don't Break Functionality** - Test all features work
-4. **Don't Remove Required Elements** - Keep forms, buttons, etc.
-5. **Don't Modify Routes** - Backend logic must stay unchanged
-
-## 🎨 Example: Create Custom Theme
-
-### 1. Copy Template
-\`\`\`bash
-cp -r packages/template-modern-dark packages/template-custom
-\`\`\`
-
-### 2. Update package.json
-\`\`\`json
-{
-  "name": "@ylstack-dev/cf-cms-template-custom",
-  "version": "1.0.0",
-  "description": "Custom theme for CF-CMS"
-}
-\`\`\`
-
-### 3. Customize Colors
-Edit \`packages/template-custom/src/layouts/admin-layout.ts\`:
-\`\`\`typescript
-const customThemeCSS = \`
-  <style>
-    /* Your custom colors */
-    body { background: #1a1a2e !important; }
-    nav[aria-label="Sidebar"] { background: #16213e !important; }
-    .bg-zinc-950 { background: #0f3460 !important; }
-  </style>
-\`
-\`\`\`
-
-### 4. Build Template
-\`\`\`bash
-cd packages/template-custom
-npm run build
-\`\`\`
-
-### 5. Use in Starter App
-\`\`\`typescript
-// starter-app/src/index.ts
-import * as customTemplate from '@ylstack-dev/cf-cms-template-custom'
-
-const bindings = {
-  TEMPLATE_PROVIDER: customTemplate
-}
-\`\`\`
+1. **Don't Hardcode Colors** - Avoid `color: #000` unless you want it to be black in both themes.
+2. **Don't Break Mobile** - Always test sidebar behavior on small screens.
+3. **Don't Remove `.card` Class** - It handles glassmorphism and borders for you.
 
 ## 🐛 Troubleshooting
 
-### Template Not Applied
+### Theme Not Switching
 **Check:**
-1. Template is enabled in \`starter-app/src/index.ts\`
-2. Template is built: \`cd packages/template-modern-dark && npm run build\`
-3. Core is built: \`npm run build:core\`
-4. Browser console shows: \`[TEMPLATE] CSS injected successfully\`
+1. Is the `theme-controller` ID present in the DOM?
+2. Are there any JS errors in the console preventing the toggle script from running?
+3. Is `localStorage` available?
 
-### Colors Not Changing
+### Styles Not Applying
 **Check:**
-1. Using \`!important\` flag
-2. Escaping Tailwind classes correctly: \`dark\\\\:bg-zinc-900\`
-3. CSS is injected after Tailwind loads
-4. Hard refresh browser (Ctrl+Shift+R)
-
-### Layout Broken
-**Check:**
-1. Not modifying HTML structure
-2. Only injecting CSS
-3. Not hiding required elements
-4. Testing on all pages
-
-## 📚 Additional Resources
-
-- **Tailwind CSS Docs**: https://tailwindcss.com/docs
-- **CSS Selectors**: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors
-- **Flexbox Guide**: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
-- **Grid Guide**: https://css-tricks.com/snippets/css/complete-guide-grid/
-
-## 🎯 Summary
-
-**Template System Benefits:**
-- ✅ Customize frontend without touching backend
-- ✅ Easy to create multiple themes
-- ✅ Safe - backend logic protected
-- ✅ Fast - just CSS injection
-- ✅ Flexible - change anything visual
-
-**Remember:**
-- Templates = Frontend customization only
-- Backend = Completely unchanged
-- CSS injection = Safe and fast
-- Test everything = All pages, all devices
+1. Did you run `npm run build` after changes?
+2. Are you using `!important` if you are trying to override Tailwind utility classes directly?
+3. Hard refresh browser (Ctrl+Shift+R).
