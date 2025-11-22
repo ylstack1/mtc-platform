@@ -9,4 +9,5 @@ export default defineConfig({
   clean: true,
   splitting: false,
   sourcemap: true,
+  external: ['../../../core/src/templates/layouts/admin-layout-catalyst.template'],
 })
