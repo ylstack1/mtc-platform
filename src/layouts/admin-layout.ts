@@ -7,7 +7,7 @@
 // Import the exact Catalyst layout function from core (using relative path)
 // @ts-ignore - core available in monorepo
 import { renderAdminLayoutCatalyst } from '../../../core/src/templates/layouts/admin-layout-catalyst.template'
-import { getThemeCSS, getThemeScript } from '../theme'
+import { getThemeCSS, getThemeScript, getThemeToggleHTML } from '../theme'
 
 export interface AdminLayoutData {
   title?: string
@@ -36,41 +36,46 @@ export function renderAdminLayout(data: AdminLayoutData & { _fullHtml?: string }
   
   const themeStyles = `<style>${getThemeCSS()}</style>`
   const themeScript = `<script>${getThemeScript()}</script>`
+  const toggleHtml = getThemeToggleHTML()
   
   const injection = `${themeStyles}\n${themeScript}`
+  
+  let htmlToModify = ''
   
   // If full HTML is provided, inject CSS into it
   if (data._fullHtml) {
     console.log('[TEMPLATE] Injecting CSS into existing HTML')
-    const fullHtml = data._fullHtml
+    htmlToModify = data._fullHtml
+  } else {
+    // Normal flow: render with core layout
+    console.log('[TEMPLATE] Rendering with core layout')
+    const dataWithTemplate = {
+      ...data,
+      templateName: 'Modern Dark',
+      templateVersion: '1.0.0'
+    }
     
-    // Inject custom CSS and script after Tailwind script
-    // We use the htmx script as an anchor point since it's known to exist in the core template
-    const modifiedHtml = fullHtml.replace(
-      '<script src="https://unpkg.com/htmx.org@2.0.3"></script>',
-      `${injection}\n  <script src="https://unpkg.com/htmx.org@2.0.3"></script>`
-    )
-    
-    console.log('[TEMPLATE] CSS injected successfully')
-    return modifiedHtml
+    htmlToModify = renderAdminLayoutCatalyst(dataWithTemplate as any)
   }
-  
-  // Normal flow: render with core layout
-  console.log('[TEMPLATE] Rendering with core layout')
-  const dataWithTemplate = {
-    ...data,
-    templateName: 'Modern Dark',
-    templateVersion: '1.0.0'
-  }
-  
-  const coreLayout = renderAdminLayoutCatalyst(dataWithTemplate as any)
   
   // Inject custom CSS and script after Tailwind script
-  const customizedLayout = coreLayout.replace(
+  // We use the htmx script as an anchor point since it's known to exist in the core template
+  let modifiedHtml = htmlToModify.replace(
     '<script src="https://unpkg.com/htmx.org@2.0.3"></script>',
     `${injection}\n  <script src="https://unpkg.com/htmx.org@2.0.3"></script>`
   )
   
-  console.log('[TEMPLATE] CSS injected into core layout')
-  return customizedLayout
+  // Inject theme toggle button before closing body tag
+  if (modifiedHtml.includes('</body>')) {
+    modifiedHtml = modifiedHtml.replace(
+      '</body>',
+      `${toggleHtml}\n</body>`
+    )
+  } else {
+    // If no body tag found (rare), append to end
+    modifiedHtml += `\n${toggleHtml}`
+  }
+  
+  console.log('[TEMPLATE] CSS and Theme Controller injected successfully')
+  return modifiedHtml
 }

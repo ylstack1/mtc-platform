@@ -51,6 +51,7 @@ export interface ThemeConfig {
     sm: string
     md: string
     lg: string
+    xl: string
   }
   motion: {
     fast: string
@@ -157,6 +158,31 @@ function generateCssVars(palette: ThemePalette): string {
   `
 }
 
+export function getThemeToggleHTML(): string {
+  return `
+    <div id="theme-controller" class="fixed bottom-6 right-6 z-50 flex items-center gap-2 print:hidden">
+        <!-- Mobile Sidebar Toggle -->
+        <button id="sidebar-toggle" class="md:hidden flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white shadow-lg backdrop-blur-md transition hover:bg-white/20 active:scale-95 border border-white/10" aria-label="Toggle Sidebar">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white shadow-lg backdrop-blur-md transition hover:bg-white/20 hover:scale-110 active:scale-95 border border-white/10" aria-label="Toggle theme">
+            <!-- Sun Icon -->
+            <svg class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <!-- Moon Icon -->
+            <svg class="h-5 w-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+        </button>
+    </div>
+  `
+}
+
 export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
   return `
     :root {
@@ -179,6 +205,8 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       /* Gradients */
       --gradient-primary: ${theme.gradients.primary};
       --gradient-surface: ${theme.gradients.surface};
+      --gradient-body: radial-gradient(circle at top right, var(--color-primary-dark), transparent 40%),
+                       radial-gradient(circle at bottom left, var(--color-secondary), transparent 40%);
 
       /* Elevations */
       --elevation-sm: ${theme.elevations.sm};
@@ -196,11 +224,15 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
 
     [data-theme="dark"] {
       ${generateCssVars(theme.palettes.dark)}
+      --gradient-body: radial-gradient(circle at top right, rgba(30, 64, 175, 0.3), transparent 40%),
+                       radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.2), transparent 40%);
     }
 
     [data-theme="light"] {
       ${generateCssVars(theme.palettes.light)}
       --gradient-surface: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0));
+      --gradient-body: radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent 40%),
+                       radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.1), transparent 40%);
     }
 
     /* Map to Core Layout Variables */
@@ -228,9 +260,12 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
 
     body {
       background: var(--color-background);
+      background-image: var(--gradient-body) !important;
+      background-attachment: fixed !important;
       color: var(--color-text);
       line-height: 1.6;
       transition: background-color var(--motion-normal), color var(--motion-normal);
+      min-height: 100vh;
     }
 
     /* Reduced Motion */
@@ -241,6 +276,71 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
       }
+    }
+
+    /* View Transition */
+    @view-transition {
+      navigation: auto;
+    }
+
+    /* Mobile Sidebar & Responsive Shell */
+    @media (max-width: 768px) {
+      /* Hide Sidebar by default on mobile */
+      .sidebar, nav[aria-label="Sidebar"] {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important;
+        width: 80% !important;
+        max-width: 300px !important;
+        z-index: 60 !important;
+        transform: translateX(-100%) !important;
+        transition: transform var(--motion-normal) !important;
+        box-shadow: var(--elevation-lg) !important;
+        background: var(--color-surface) !important;
+      }
+      
+      /* Show Sidebar when active */
+      body.sidebar-open .sidebar, 
+      body.sidebar-open nav[aria-label="Sidebar"] {
+        transform: translateX(0) !important;
+      }
+
+      /* Overlay when sidebar is open */
+      body.sidebar-open::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        z-index: 59;
+        animation: fadeIn var(--motion-fast);
+      }
+    }
+
+    /* Sticky Headers */
+    header, .header {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 50 !important;
+      backdrop-filter: blur(12px) !important;
+      background-color: rgba(var(--color-background), 0.8) !important;
+      border-bottom: 1px solid var(--color-border) !important;
+      transition: all var(--motion-normal) !important;
+    }
+    
+    /* Glassmorphism Cards */
+    .card, .bg-zinc-900, .dark\\:bg-zinc-900 {
+       background: rgba(30, 41, 59, 0.7) !important;
+       backdrop-filter: blur(12px) !important;
+       border: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    [data-theme="light"] .card,
+    [data-theme="light"] .bg-zinc-900,
+    [data-theme="light"] .dark\\:bg-zinc-900 {
+       background: rgba(255, 255, 255, 0.7) !important;
+       border: 1px solid rgba(0,0,0,0.05) !important;
     }
 
     /* Typography */
@@ -287,33 +387,6 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     .btn-secondary:hover {
       background: var(--color-border);
       border-color: var(--color-text-secondary);
-    }
-
-    /* Cards */
-    .card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: var(--spacing-lg);
-      transition: all var(--motion-normal);
-      box-shadow: var(--elevation-sm);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--gradient-surface);
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .card:hover {
-      border-color: var(--color-primary);
-      box-shadow: var(--elevation-md);
-      transform: translateY(-1px);
     }
 
     /* Forms */
@@ -365,35 +438,6 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       background: var(--color-surface);
     }
 
-    /* Alerts */
-    .alert {
-      padding: var(--spacing-md) var(--spacing-lg);
-      border-radius: 8px;
-      margin-bottom: var(--spacing-md);
-      display: flex;
-      gap: var(--spacing-md);
-      align-items: flex-start;
-      animation: fadeIn var(--motion-normal);
-    }
-
-    .alert-success {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid var(--color-success);
-      color: var(--color-success);
-    }
-
-    .alert-warning {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid var(--color-warning);
-      color: var(--color-warning);
-    }
-
-    .alert-error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid var(--color-error);
-      color: var(--color-error);
-    }
-
     /* Layout */
     .container {
       max-width: 1280px;
@@ -415,22 +459,9 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
     }
 
-    /* Utilities */
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .mt-md { margin-top: var(--spacing-md); }
-    .mb-md { margin-bottom: var(--spacing-md); }
-    .p-md { padding: var(--spacing-md); }
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .gap-md { gap: var(--spacing-md); }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    
-    .gradient-text {
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    /* Content Fade In */
+    main, .content, .main-content {
+      animation: fadeIn var(--motion-normal) forwards;
     }
 
     /* Animations */
@@ -467,6 +498,7 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
 export function getThemeScript(): string {
   return `
     (function() {
+      // Initialize theme immediately to prevent flash
       try {
         var saved = localStorage.getItem('theme');
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -478,6 +510,50 @@ export function getThemeScript(): string {
           document.documentElement.classList.remove('dark');
         }
       } catch (e) {}
+
+      // Initialize Controller when DOM is ready
+      function initController() {
+        // Theme Toggle
+        var themeBtn = document.getElementById('theme-toggle');
+        if (themeBtn) {
+          themeBtn.addEventListener('click', function() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', next);
+            if (next === 'dark') {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', next);
+          });
+        }
+
+        // Sidebar Toggle
+        var sidebarBtn = document.getElementById('sidebar-toggle');
+        if (sidebarBtn) {
+          sidebarBtn.addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-open');
+          });
+          
+          // Close sidebar when clicking outside (overlay)
+          document.body.addEventListener('click', function(e) {
+            if (document.body.classList.contains('sidebar-open') && 
+                !e.target.closest('nav[aria-label="Sidebar"]') && 
+                !e.target.closest('.sidebar') &&
+                !e.target.closest('#sidebar-toggle')) {
+              document.body.classList.remove('sidebar-open');
+            }
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initController);
+      } else {
+        initController();
+      }
     })();
   `
 }
