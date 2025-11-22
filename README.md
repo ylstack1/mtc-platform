@@ -1,32 +1,32 @@
-# Modern Dark Theme Template for CF-CMS
+# Dual Theme Template for CF-CMS
 
-A production-ready, modern dark theme template package for CF-CMS with beautiful UI, responsive design, and customizable colors.
+A production-ready, dual-theme (dark/light) template package for CF-CMS with beautiful UI, responsive design, and customizable colors.
 
 ## Features
 
-✨ **Modern Design**
-- Clean, minimalist interface
-- Dark theme optimized for reduced eye strain
+✨ **Dual Theme System**
+- Seamless Dark/Light mode switching
+- Shared typography and spacing tokens
+- Automatic preference detection
+- Persisted user preference
+
+🎨 **Modern Design & Gradients**
+- Gradient-rich tokens for primary actions and surfaces
+- Glassmorphism effects on cards and overlays
 - Smooth animations and transitions
-- Professional color scheme
+- Professional, accessible color palettes
 
-📱 **Responsive**
-- Mobile-first design
-- Tablet and desktop optimized
-- Touch-friendly interface
-- Adaptive layouts
-
-🎨 **Customizable**
-- CSS variables for easy theming
-- Configurable colors, typography, spacing
-- Easy to extend and modify
-- No build step required
+📱 **Responsive Layouts**
+- Mobile-first sidebar and navigation
+- Adaptive grids (2-col, 3-col, 4-col)
+- Touch-friendly interactions
+- Responsive data tables
 
 ⚡ **Performance**
-- Minimal CSS (~5KB)
-- No JavaScript dependencies
-- Fast rendering
-- Edge-compatible
+- Zero-runtime-overhead CSS generation
+- Optimized SVG icons
+- No external client-side dependencies
+- Fast rendering on Edge
 
 ## Installation
 
@@ -52,10 +52,10 @@ npm install @ylstack-dev/cf-cms-template-modern-dark
 
 ```typescript
 import { createCfCmsApp } from '@ylstack-dev/cf-cms-core'
-import * as modernDarkTemplate from '@ylstack-dev/cf-cms-template-modern-dark'
+import * as template from '@ylstack-dev/cf-cms-template-modern-dark'
 
 const app = createCfCmsApp({
-  templates: modernDarkTemplate
+  templates: template
 })
 
 export default app
@@ -71,20 +71,30 @@ npm run dev
 
 ## Customization
 
-### Change Colors
+### Change Colors & Gradients
 
-Create a custom theme by modifying `theme.ts`:
+Create a custom theme by modifying `theme.ts` or extending the configuration:
 
 ```typescript
-import { modernDarkTheme, getThemeCSS } from '@ylstack-dev/cf-cms-template-modern-dark'
+import { modernDarkTheme, getThemeCSS, ThemeConfig } from '@ylstack-dev/cf-cms-template-modern-dark'
 
-const customTheme = {
+const customTheme: ThemeConfig = {
   ...modernDarkTheme,
-  colors: {
-    ...modernDarkTheme.colors,
-    primary: '#ff6b6b',      // Change primary color
-    secondary: '#4ecdc4',    // Change secondary color
-    background: '#1a1a2e',   // Change background
+  palettes: {
+    ...modernDarkTheme.palettes,
+    dark: {
+      ...modernDarkTheme.palettes.dark,
+      primary: '#ff6b6b',      // Custom primary color
+      background: '#1a1a2e',   // Custom background
+    },
+    light: {
+      ...modernDarkTheme.palettes.light,
+      primary: '#ff4757',
+    }
+  },
+  gradients: {
+    ...modernDarkTheme.gradients,
+    primary: 'linear-gradient(135deg, #ff6b6b, #ff4757)',
   }
 }
 
@@ -95,15 +105,18 @@ export function getCustomThemeCSS() {
 
 ### Extend Templates
 
-Create new templates by extending existing ones:
+Create new templates by extending existing ones. The dashboard pieces are modular:
 
 ```typescript
 import { renderAdminLayout, AdminLayoutData } from '@ylstack-dev/cf-cms-template-modern-dark'
 
 export function renderCustomPage(data: any): string {
   const pageContent = `
-    <div>
-      <!-- Your custom content -->
+    <div class="grid grid-2">
+      <div class="card p-6">
+         <h2>My Analytics</h2>
+         <!-- Your content -->
+      </div>
     </div>
   `
 
@@ -116,35 +129,31 @@ export function renderCustomPage(data: any): string {
 }
 ```
 
-## Color Palette
+## Token System
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| Primary | #3b82f6 | Buttons, links, highlights |
-| Secondary | #8b5cf6 | Accents, secondary actions |
-| Accent | #ec4899 | Alerts, important elements |
-| Background | #0f172a | Page background |
-| Surface | #1e293b | Cards, panels |
-| Border | #334155 | Dividers, borders |
-| Text | #f1f5f9 | Primary text |
-| Text Secondary | #cbd5e1 | Secondary text |
-| Success | #10b981 | Success states |
-| Warning | #f59e0b | Warning states |
-| Error | #ef4444 | Error states |
+### Palettes (Dark & Light)
+
+| Token | Description |
+|-------|-------------|
+| `primary` | Main brand color (Buttons, Links) |
+| `primaryDark` | Darker shade for interactions |
+| `secondary` | Accent color for gradients/highlights |
+| `surface` | Card/Panel background color |
+| `background` | Page background color |
+| `text` | Primary text color |
+| `textSecondary` | Muted text color |
+
+### Gradients
+
+- `--gradient-primary`: Used for primary buttons and active states.
+- `--gradient-body`: Ambient background gradient for the page.
+- `--gradient-surface`: Subtle gradient for cards (light mode).
 
 ## Typography
 
 - **Font Family**: System fonts (Apple, Segoe UI, Roboto, etc.)
 - **Base Size**: 16px
 - **Sizes**: xs (12px), sm (14px), base (16px), lg (18px), xl (20px), 2xl (24px)
-
-## Spacing
-
-- **xs**: 4px
-- **sm**: 8px
-- **md**: 16px
-- **lg**: 24px
-- **xl**: 32px
 
 ## Browser Support
 
@@ -153,21 +162,10 @@ export function renderCustomPage(data: any): string {
 - Safari 14+
 - Mobile browsers (iOS Safari, Chrome Mobile)
 
-## Performance
-
-- CSS Size: ~5KB
-- No JavaScript
-- No external dependencies
-- Renders in < 100ms
-
 ## License
 
 MIT
 
 ## Support
 
-For issues, questions, or suggestions, please open an issue on GitHub or contact the CF-CMS team.
-
-## Credits
-
-Created for CF-CMS by the YLStack team.
+For issues, questions, or suggestions, please open an issue on GitHub.
