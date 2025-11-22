@@ -1,22 +1,29 @@
 /**
- * Modern Dark Theme Configuration
- * Color scheme, typography, and spacing
+ * Dual Theme Configuration
+ * Supports both dark and light modes with shared typography and spacing
  */
 
+export type ThemeMode = 'dark' | 'light'
+
+export interface ThemePalette {
+  primary: string
+  primaryDark: string
+  secondary: string
+  accent: string
+  background: string
+  surface: string
+  border: string
+  text: string
+  textSecondary: string
+  success: string
+  warning: string
+  error: string
+}
+
 export interface ThemeConfig {
-  colors: {
-    primary: string
-    primaryDark: string
-    secondary: string
-    accent: string
-    background: string
-    surface: string
-    border: string
-    text: string
-    textSecondary: string
-    success: string
-    warning: string
-    error: string
+  palettes: {
+    dark: ThemePalette
+    light: ThemePalette
   }
   typography: {
     fontFamily: string
@@ -36,22 +43,62 @@ export interface ThemeConfig {
     lg: string
     xl: string
   }
+  gradients: {
+    primary: string
+    surface: string
+  }
+  elevations: {
+    sm: string
+    md: string
+    lg: string
+  }
+  motion: {
+    fast: string
+    normal: string
+    slow: string
+  }
+  breakpoints: {
+    sm: string
+    md: string
+    lg: string
+    xl: string
+  }
+}
+
+const darkPalette: ThemePalette = {
+  primary: '#3b82f6',      // Blue
+  primaryDark: '#1e40af',  // Dark Blue
+  secondary: '#8b5cf6',    // Purple
+  accent: '#ec4899',       // Pink
+  background: '#0f172a',   // Very Dark Blue
+  surface: '#1e293b',      // Dark Slate
+  border: '#334155',       // Slate
+  text: '#f1f5f9',         // Light Slate
+  textSecondary: '#cbd5e1',// Medium Slate
+  success: '#10b981',      // Green
+  warning: '#f59e0b',      // Amber
+  error: '#ef4444',        // Red
+}
+
+const lightPalette: ThemePalette = {
+  primary: '#2563eb',      // Blue
+  primaryDark: '#1e40af',  // Dark Blue
+  secondary: '#7c3aed',    // Purple
+  accent: '#db2777',       // Pink
+  background: '#f8fafc',   // Off-white
+  surface: '#ffffff',      // White
+  border: '#e2e8f0',       // Light Slate
+  text: '#0f172a',         // Dark Slate
+  textSecondary: '#475569',// Medium Slate
+  success: '#059669',      // Green
+  warning: '#d97706',      // Amber
+  error: '#dc2626',        // Red
 }
 
 export const modernDarkTheme: ThemeConfig = {
-  colors: {
-    primary: '#3b82f6',      // Blue
-    primaryDark: '#1e40af',  // Dark Blue
-    secondary: '#8b5cf6',    // Purple
-    accent: '#ec4899',       // Pink
-    background: '#0f172a',   // Very Dark Blue
-    surface: '#1e293b',      // Dark Slate
-    border: '#334155',       // Slate
-    text: '#f1f5f9',         // Light Slate
-    textSecondary: '#cbd5e1',// Medium Slate
-    success: '#10b981',      // Green
-    warning: '#f59e0b',      // Amber
-    error: '#ef4444',        // Red
+  palettes: {
+    dark: darkPalette,
+    light: lightPalette
   },
   typography: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -71,24 +118,49 @@ export const modernDarkTheme: ThemeConfig = {
     lg: '24px',
     xl: '32px',
   },
+  gradients: {
+    primary: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+    surface: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0))',
+  },
+  elevations: {
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  },
+  motion: {
+    fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
+    normal: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+    slow: '500ms cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  breakpoints: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+  },
+}
+
+function generateCssVars(palette: ThemePalette): string {
+  return `
+    --color-primary: ${palette.primary};
+    --color-primary-dark: ${palette.primaryDark};
+    --color-secondary: ${palette.secondary};
+    --color-accent: ${palette.accent};
+    --color-background: ${palette.background};
+    --color-surface: ${palette.surface};
+    --color-border: ${palette.border};
+    --color-text: ${palette.text};
+    --color-text-secondary: ${palette.textSecondary};
+    --color-success: ${palette.success};
+    --color-warning: ${palette.warning};
+    --color-error: ${palette.error};
+  `
 }
 
 export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
   return `
     :root {
-      --color-primary: ${theme.colors.primary};
-      --color-primary-dark: ${theme.colors.primaryDark};
-      --color-secondary: ${theme.colors.secondary};
-      --color-accent: ${theme.colors.accent};
-      --color-background: ${theme.colors.background};
-      --color-surface: ${theme.colors.surface};
-      --color-border: ${theme.colors.border};
-      --color-text: ${theme.colors.text};
-      --color-text-secondary: ${theme.colors.textSecondary};
-      --color-success: ${theme.colors.success};
-      --color-warning: ${theme.colors.warning};
-      --color-error: ${theme.colors.error};
-      
+      /* Typography */
       --font-family: ${theme.typography.fontFamily};
       --font-size-xs: ${theme.typography.fontSize.xs};
       --font-size-sm: ${theme.typography.fontSize.sm};
@@ -97,13 +169,48 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       --font-size-xl: ${theme.typography.fontSize.xl};
       --font-size-2xl: ${theme.typography.fontSize['2xl']};
       
+      /* Spacing */
       --spacing-xs: ${theme.spacing.xs};
       --spacing-sm: ${theme.spacing.sm};
       --spacing-md: ${theme.spacing.md};
       --spacing-lg: ${theme.spacing.lg};
       --spacing-xl: ${theme.spacing.xl};
+
+      /* Gradients */
+      --gradient-primary: ${theme.gradients.primary};
+      --gradient-surface: ${theme.gradients.surface};
+
+      /* Elevations */
+      --elevation-sm: ${theme.elevations.sm};
+      --elevation-md: ${theme.elevations.md};
+      --elevation-lg: ${theme.elevations.lg};
+
+      /* Motion */
+      --motion-fast: ${theme.motion.fast};
+      --motion-normal: ${theme.motion.normal};
+      --motion-slow: ${theme.motion.slow};
+
+      /* Default Palette (Dark) */
+      ${generateCssVars(theme.palettes.dark)}
     }
 
+    [data-theme="dark"] {
+      ${generateCssVars(theme.palettes.dark)}
+    }
+
+    [data-theme="light"] {
+      ${generateCssVars(theme.palettes.light)}
+      --gradient-surface: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0));
+    }
+
+    /* Map to Core Layout Variables */
+    :root {
+      --theme-primary: var(--color-primary);
+      --theme-secondary: var(--color-secondary);
+      --theme-accent: var(--color-accent);
+    }
+
+    /* Base Reset & Styles */
     * {
       margin: 0;
       padding: 0;
@@ -115,18 +222,31 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       font-size: var(--font-size-base);
       color: var(--color-text);
       background: var(--color-background);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
       background: var(--color-background);
       color: var(--color-text);
       line-height: 1.6;
+      transition: background-color var(--motion-normal), color var(--motion-normal);
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
 
     /* Typography */
-    h1 { font-size: var(--font-size-2xl); font-weight: 700; margin-bottom: var(--spacing-md); }
-    h2 { font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--spacing-md); }
-    h3 { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--spacing-sm); }
+    h1 { font-size: var(--font-size-2xl); font-weight: 700; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    h2 { font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--spacing-md); color: var(--color-text); }
+    h3 { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-text); }
     p { margin-bottom: var(--spacing-md); color: var(--color-text-secondary); }
 
     /* Buttons */
@@ -141,19 +261,21 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       font-size: var(--font-size-sm);
       border: none;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all var(--motion-fast);
       text-decoration: none;
     }
 
     .btn-primary {
       background: var(--color-primary);
+      background-image: var(--gradient-primary);
       color: white;
+      box-shadow: var(--elevation-sm);
     }
 
     .btn-primary:hover {
       background: var(--color-primary-dark);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      box-shadow: var(--elevation-md);
     }
 
     .btn-secondary {
@@ -164,6 +286,7 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
 
     .btn-secondary:hover {
       background: var(--color-border);
+      border-color: var(--color-text-secondary);
     }
 
     /* Cards */
@@ -172,12 +295,25 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       border: 1px solid var(--color-border);
       border-radius: 12px;
       padding: var(--spacing-lg);
-      transition: all 0.2s ease;
+      transition: all var(--motion-normal);
+      box-shadow: var(--elevation-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--gradient-surface);
+      pointer-events: none;
+      opacity: 0.5;
     }
 
     .card:hover {
       border-color: var(--color-primary);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+      box-shadow: var(--elevation-md);
+      transform: translateY(-1px);
     }
 
     /* Forms */
@@ -190,7 +326,7 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       color: var(--color-text);
       font-family: inherit;
       font-size: inherit;
-      transition: all 0.2s ease;
+      transition: all var(--motion-fast);
     }
 
     input:focus, textarea:focus, select:focus {
@@ -218,10 +354,15 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     td {
       padding: var(--spacing-md);
       border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+
+    tr {
+      transition: background-color var(--motion-fast);
     }
 
     tr:hover {
-      background: var(--color-background);
+      background: var(--color-surface);
     }
 
     /* Alerts */
@@ -232,6 +373,7 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       display: flex;
       gap: var(--spacing-md);
       align-items: flex-start;
+      animation: fadeIn var(--motion-normal);
     }
 
     .alert-success {
@@ -268,6 +410,11 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
     .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 
+    /* Responsive Grid Helpers */
+    @media (max-width: ${theme.breakpoints.md}) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
     /* Utilities */
     .text-center { text-align: center; }
     .text-right { text-align: right; }
@@ -279,6 +426,22 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     .gap-md { gap: var(--spacing-md); }
     .items-center { align-items: center; }
     .justify-between { justify-content: space-between; }
+    
+    .gradient-text {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn var(--motion-normal) forwards;
+    }
 
     /* Scrollbar */
     ::-webkit-scrollbar {
@@ -298,6 +461,24 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     ::-webkit-scrollbar-thumb:hover {
       background: var(--color-primary);
     }
+  `
+}
+
+export function getThemeScript(): string {
+  return `
+    (function() {
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    })();
   `
 }
 
