@@ -5,6 +5,10 @@
 
 import { renderAdminLayout, AdminLayoutData } from '../layouts/admin-layout'
 import { escapeHtml } from '../theme'
+import { renderMetricGrid, MetricCardProps } from '../components/metrics'
+import { renderAnalyticsPanel, AnalyticsDataPoint } from '../components/analytics'
+import { renderActionGrid, ActionItem as ActionGridItem } from '../components/actions'
+import { renderActivityList, ActivityItem as ActivityListItem } from '../components/activity'
 
 export interface DashboardStats {
   collections: number
@@ -63,77 +67,142 @@ export function renderDashboardPage(data: DashboardPageData): string {
     users: 0,
   }
 
+  // 1. Hero Header
+  const heroHtml = `
+    <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-800 p-8 text-white shadow-lg">
+      <div class="relative z-10">
+        <h1 class="text-3xl font-bold mb-2 text-white">Welcome back${data.user?.name ? `, ${escapeHtml(data.user.name)}` : ''}!</h1>
+        <p class="text-blue-100 max-w-2xl">Here's what's happening in your project today. You have <span class="font-semibold text-white">${stats.recentActivity?.length || 0} new updates</span> to review.</p>
+        
+        ${data.user?.role ? `
+          <div class="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-sm backdrop-blur-sm border border-white/10">
+            <span class="w-2 h-2 rounded-full bg-green-400 mr-2"></span>
+            ${escapeHtml(data.user.role)}
+          </div>
+        ` : ''}
+      </div>
+      
+      <!-- Decorative background elements -->
+      <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-purple-500 opacity-20 rounded-full blur-3xl"></div>
+    </div>
+  `
+
+  // 2. Metrics Grid
+  const metrics: MetricCardProps[] = [
+    {
+      title: 'Collections',
+      value: stats.collections,
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>',
+      trend: { value: 12, direction: 'up', label: 'from last week' } // Dummy trend for visual
+    },
+    {
+      title: 'Content Items',
+      value: stats.contentItems,
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>',
+      trend: { value: 5, direction: 'up' }
+    },
+    {
+      title: 'Media Files',
+      value: stats.mediaFiles,
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+      trend: { value: 2, direction: 'down', label: 'storage usage' }
+    },
+    {
+      title: 'Users',
+      value: stats.users,
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>',
+      trend: { value: 0, direction: 'neutral' }
+    }
+  ]
+
+  const metricsHtml = renderMetricGrid({ metrics, className: 'mb-8' })
+
+  // 3. Analytics & Actions Grid
+  const analyticsData: AnalyticsDataPoint[] = stats.analytics ? [
+    { label: 'Views', value: stats.analytics.weeklyGrowth.pageViews, color: 'bg-blue-500 dark:bg-blue-600' },
+    { label: 'Visitors', value: stats.analytics.weeklyGrowth.visitors, color: 'bg-purple-500 dark:bg-purple-600' },
+    { label: 'Content', value: stats.analytics.weeklyGrowth.content, color: 'bg-pink-500 dark:bg-pink-600' },
+    { label: 'Media', value: stats.analytics.weeklyGrowth.media, color: 'bg-green-500 dark:bg-green-600' }
+  ] : []
+
+  const analyticsPanel = renderAnalyticsPanel({
+    title: 'Weekly Overview',
+    description: 'Performance metrics across your content and users',
+    data: analyticsData,
+    type: 'bar',
+    height: '250px',
+    className: 'h-full'
+  })
+
+  const actions: ActionGridItem[] = [
+    {
+      label: 'Create Content',
+      href: '/admin/content',
+      variant: 'primary',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>'
+    },
+    {
+      label: 'Upload Media',
+      href: '/admin/media',
+      variant: 'secondary',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>'
+    },
+    {
+      label: 'Manage Users',
+      href: '/admin/users',
+      variant: 'secondary',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>'
+    },
+    {
+      label: 'Settings',
+      href: '/admin/settings',
+      variant: 'secondary',
+      icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>'
+    }
+  ]
+
+  const actionsGrid = renderActionGrid({ actions, columns: 2 })
+
+  // 4. Activity List
+  const activityItems: ActivityListItem[] = (stats.recentActivity || []).map(activity => ({
+    id: activity.id,
+    user: {
+      name: activity.user,
+      initials: activity.user.substring(0, 2).toUpperCase()
+    },
+    action: activity.action,
+    target: activity.description, // Mapping description to target
+    time: activity.timestamp,
+    icon: getActivityIcon(activity.type)
+  }))
+
+  const activityHtml = renderActivityList({
+    title: 'Recent Activity',
+    items: activityItems,
+    maxHeight: '400px'
+  })
+
+  // Combine Layout
   const pageContent = `
-    <div>
-      <h1>Dashboard</h1>
-      <p style="color: var(--color-text-secondary); margin-bottom: var(--spacing-lg);">Welcome to your CF-CMS admin dashboard</p>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-4" style="margin-bottom: var(--spacing-xl);">
-        ${renderStatCard('📚 Collections', stats.collections, '#3b82f6')}
-        ${renderStatCard('📝 Content Items', stats.contentItems, '#8b5cf6')}
-        ${renderStatCard('🖼️ Media Files', stats.mediaFiles, '#ec4899')}
-        ${renderStatCard('👥 Users', stats.users, '#10b981')}
-      </div>
-
-      <!-- Main Grid -->
-      <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
-        <!-- Analytics Card -->
-        <div class="card">
-          <h2>Analytics Overview</h2>
-          <div style="margin-top: var(--spacing-lg);">
-            ${renderAnalyticsChart(stats.analytics)}
-          </div>
+    <div class="animate-fade-in">
+      ${heroHtml}
+      ${metricsHtml}
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-2">
+          ${analyticsPanel}
         </div>
-
-        <!-- Quick Stats -->
-        <div class="card">
-          <h2>Quick Stats</h2>
-          <div style="margin-top: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md);">
-            ${renderQuickStat('Page Views', stats.analytics?.pageViews || 0)}
-            ${renderQuickStat('Unique Visitors', stats.analytics?.uniqueVisitors || 0)}
-            ${renderQuickStat('Content Published', stats.analytics?.contentPublished || 0)}
-            ${renderQuickStat('Media Uploaded', stats.analytics?.mediaUploaded || 0)}
-          </div>
+        <div class="flex flex-col gap-6">
+           <div class="card p-6 rounded-lg shadow-sm">
+             <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Quick Actions</h3>
+             ${actionsGrid}
+           </div>
+           <!-- You could add more widgets here -->
         </div>
       </div>
 
-      <!-- Recent Activity -->
-      ${stats.recentActivity && stats.recentActivity.length > 0 ? `
-        <div class="card">
-          <h2>Recent Activity</h2>
-          <div style="margin-top: var(--spacing-lg);">
-            <table>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Action</th>
-                  <th>User</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${stats.recentActivity.slice(0, 5).map(activity => `
-                  <tr>
-                    <td><span style="background: var(--color-primary); color: white; padding: 4px 8px; border-radius: 4px; font-size: var(--font-size-xs);">${escapeHtml(activity.type)}</span></td>
-                    <td>${escapeHtml(activity.action)}</td>
-                    <td>${escapeHtml(activity.user)}</td>
-                    <td style="color: var(--color-text-secondary);">${escapeHtml(activity.timestamp)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Action Buttons -->
-      <div style="margin-top: var(--spacing-xl); display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
-        <a href="/admin/content" class="btn btn-primary">Create Content</a>
-        <a href="/admin/media" class="btn btn-secondary">Upload Media</a>
-        <a href="/admin/users" class="btn btn-secondary">Manage Users</a>
-        <a href="/admin/settings" class="btn btn-secondary">Settings</a>
-      </div>
+      ${activityHtml}
     </div>
   `
 
@@ -148,64 +217,15 @@ export function renderDashboardPage(data: DashboardPageData): string {
   return renderAdminLayout(layoutData)
 }
 
-function renderStatCard(label: string, value: number, color: string): string {
-  return `
-    <div class="card" style="text-align: center;">
-      <div style="font-size: 32px; margin-bottom: var(--spacing-md);">
-        ${label.split(' ')[0]}
-      </div>
-      <div style="font-size: 28px; font-weight: 700; color: ${color}; margin-bottom: var(--spacing-sm);">
-        ${value.toLocaleString()}
-      </div>
-      <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
-        ${label.split(' ').slice(1).join(' ')}
-      </div>
-    </div>
-  `
-}
-
-function renderAnalyticsChart(analytics?: AnalyticsData): string {
-  if (!analytics) {
-    return `
-      <div style="text-align: center; padding: var(--spacing-xl); color: var(--color-text-secondary);">
-        <p>No analytics data available</p>
-      </div>
-    `
+function getActivityIcon(type: string): string {
+  switch (type) {
+    case 'content':
+      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>'
+    case 'media':
+      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+    case 'user':
+      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>'
+    default:
+      return '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
   }
-
-  const maxValue = Math.max(
-    analytics.weeklyGrowth.pageViews,
-    analytics.weeklyGrowth.visitors,
-    analytics.weeklyGrowth.content,
-    analytics.weeklyGrowth.media
-  )
-
-  return `
-    <div style="display: flex; align-items: flex-end; gap: var(--spacing-md); height: 200px;">
-      ${renderChartBar('Page Views', analytics.weeklyGrowth.pageViews, maxValue, '#3b82f6')}
-      ${renderChartBar('Visitors', analytics.weeklyGrowth.visitors, maxValue, '#8b5cf6')}
-      ${renderChartBar('Content', analytics.weeklyGrowth.content, maxValue, '#ec4899')}
-      ${renderChartBar('Media', analytics.weeklyGrowth.media, maxValue, '#10b981')}
-    </div>
-  `
-}
-
-function renderChartBar(label: string, value: number, maxValue: number, color: string): string {
-  const height = maxValue > 0 ? (value / maxValue) * 100 : 0
-  return `
-    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--spacing-sm);">
-      <div style="width: 100%; height: ${height}%; background: ${color}; border-radius: 4px 4px 0 0; min-height: 20px;"></div>
-      <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">${label}</div>
-      <div style="font-weight: 600; font-size: var(--font-size-sm);">${value}</div>
-    </div>
-  `
-}
-
-function renderQuickStat(label: string, value: number): string {
-  return `
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); background: var(--color-background); border-radius: 8px;">
-      <span style="color: var(--color-text-secondary);">${escapeHtml(label)}</span>
-      <span style="font-weight: 700; font-size: var(--font-size-lg);">${value.toLocaleString()}</span>
-    </div>
-  `
 }
