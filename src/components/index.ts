@@ -1,9 +1,6 @@
-/**
- * Template Components
- * Reusable UI components for modern-dark theme
- * Exact copy from core for easy customization
- */
-
-export { renderLogo } from './logo.template'
-
-export type { LogoData } from './logo.template'
+export * from './logo.template'
+export * from './metrics'
+export * from './analytics'
+export * from './actions'
+export * from './activity'
+export * from './badges'
