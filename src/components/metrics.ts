@@ -19,7 +19,7 @@ export function renderMetricCard(props: MetricCardProps): string {
   if (trend) {
     const trendColor = trend.direction === 'up' ? 'text-green-600 dark:text-green-400' : 
                        trend.direction === 'down' ? 'text-red-600 dark:text-red-400' : 
-                       'text-gray-600 dark:text-gray-400'
+                       'text-theme-secondary'
     
     const arrowIcon = trend.direction === 'up' 
       ? '<svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>'
@@ -31,19 +31,19 @@ export function renderMetricCard(props: MetricCardProps): string {
       <div class="flex items-baseline text-sm font-semibold ${trendColor}">
         ${arrowIcon}
         ${trend.value}%
-        ${trend.label ? `<span class="ml-2 text-gray-500 dark:text-gray-400 font-normal">${escapeHtml(trend.label)}</span>` : ''}
+        ${trend.label ? `<span class="ml-2 text-theme-secondary font-normal">${escapeHtml(trend.label)}</span>` : ''}
       </div>
     `
   }
 
   return `
-    <div class="card p-6 rounded-lg shadow-sm ${className}">
+    <div class="card p-6 rounded-lg shadow-theme ${className}">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">${escapeHtml(title)}</h3>
-        ${icon ? `<div class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">${icon}</div>` : ''}
+        <h3 class="text-sm font-medium text-theme-secondary truncate">${escapeHtml(title)}</h3>
+        ${icon ? `<div class="p-2 rounded-full bg-theme-background text-theme-primary">${icon}</div>` : ''}
       </div>
       <div class="flex items-baseline">
-        <p class="text-2xl font-semibold text-gray-900 dark:text-white">${escapeHtml(String(value))}</p>
+        <p class="text-2xl font-semibold text-theme-text">${escapeHtml(String(value))}</p>
       </div>
       ${trendHtml ? `<div class="mt-2">${trendHtml}</div>` : ''}
     </div>
