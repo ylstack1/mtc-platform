@@ -284,6 +284,16 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
       navigation: auto;
     }
 
+    /* Sidebar Z-Index Fix & Layout */
+    .sidebar, nav[aria-label="Sidebar"], aside {
+      z-index: 55 !important;
+    }
+    
+    /* Ensure Sidebar is interactive */
+    .sidebar *, nav[aria-label="Sidebar"] *, aside * {
+      pointer-events: auto !important;
+    }
+
     /* Mobile Sidebar & Responsive Shell */
     @media (max-width: 768px) {
       /* Hide Sidebar by default on mobile */
@@ -493,6 +503,16 @@ export function getThemeCSS(theme: ThemeConfig = modernDarkTheme): string {
     ::-webkit-scrollbar-thumb:hover {
       background: var(--color-primary);
     }
+
+    /* Theme Utilities */
+    .text-theme-primary { color: var(--color-primary) !important; }
+    .text-theme-secondary { color: var(--color-text-secondary) !important; }
+    .text-theme-text { color: var(--color-text) !important; }
+    .bg-theme-surface { background-color: var(--color-surface) !important; }
+    .bg-theme-background { background-color: var(--color-background) !important; }
+    .bg-theme-border { background-color: var(--color-border) !important; }
+    .border-theme { border-color: var(--color-border) !important; }
+    .shadow-theme { box-shadow: var(--elevation-sm) !important; }
   `
 }
 

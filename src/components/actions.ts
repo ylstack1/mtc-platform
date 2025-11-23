@@ -23,11 +23,22 @@ export function renderActionGrid(props: ActionGridProps): string {
   return `
     <div class="grid ${gridClass} gap-4 ${className}">
       ${actions.map(action => {
-        const variantClasses = action.variant === 'danger' 
-          ? 'bg-red-50 hover:bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 dark:border-red-800'
-          : action.variant === 'secondary'
-          ? 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-gray-200 dark:border-zinc-700'
-          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+        // Using theme variables with inline styles for opacity where needed, or leveraging tailwind's arbitrary values
+        // Note: Tailwind arbitrary values with CSS variables works if configured, but here we might need to rely on style attributes or direct CSS if we want transparency on variables without calc
+        
+        let variantClasses = ''
+        let style = ''
+        
+        if (action.variant === 'danger') {
+          variantClasses = 'text-[var(--color-error)] border-[var(--color-error)] hover:shadow-md'
+          style = 'background-color: color-mix(in srgb, var(--color-error), transparent 90%); border-color: color-mix(in srgb, var(--color-error), transparent 80%);'
+        } else if (action.variant === 'secondary') {
+          variantClasses = 'bg-theme-surface text-theme-text border-theme hover:bg-theme-background'
+        } else {
+          // Primary
+          variantClasses = 'text-[var(--color-primary)] border-[var(--color-primary)] hover:shadow-md'
+          style = 'background-color: color-mix(in srgb, var(--color-primary), transparent 90%); border-color: color-mix(in srgb, var(--color-primary), transparent 80%);'
+        }
 
         const disabledClass = action.disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
         
@@ -41,14 +52,16 @@ export function renderActionGrid(props: ActionGridProps): string {
         if (action.href) {
           return `
             <a href="${escapeHtml(action.href)}" 
-               class="block border rounded-lg transition-all shadow-sm hover:shadow-md min-h-[120px] ${variantClasses} ${disabledClass}">
+               class="block border rounded-lg transition-all shadow-sm min-h-[120px] ${variantClasses} ${disabledClass}"
+               style="${style}">
               ${content}
             </a>
           `
         } else {
            return `
             <button onclick="${action.onClick ? escapeHtml(action.onClick) : ''}" 
-               class="w-full border rounded-lg transition-all shadow-sm hover:shadow-md min-h-[120px] ${variantClasses} ${disabledClass}"
+               class="w-full border rounded-lg transition-all shadow-sm min-h-[120px] ${variantClasses} ${disabledClass}"
+               style="${style}"
                ${action.disabled ? 'disabled' : ''}>
               ${content}
             </button>

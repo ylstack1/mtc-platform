@@ -68,11 +68,12 @@ export function renderDashboardPage(data: DashboardPageData): string {
   }
 
   // 1. Hero Header
+  // Using theme gradient
   const heroHtml = `
-    <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-800 p-8 text-white shadow-lg">
+    <div class="mb-8 relative overflow-hidden rounded-2xl p-8 text-white shadow-theme" style="background: var(--gradient-primary)">
       <div class="relative z-10">
         <h1 class="text-3xl font-bold mb-2 text-white">Welcome back${data.user?.name ? `, ${escapeHtml(data.user.name)}` : ''}!</h1>
-        <p class="text-blue-100 max-w-2xl">Here's what's happening in your project today. You have <span class="font-semibold text-white">${stats.recentActivity?.length || 0} new updates</span> to review.</p>
+        <p class="text-white/80 max-w-2xl">Here's what's happening in your project today. You have <span class="font-semibold text-white">${stats.recentActivity?.length || 0} new updates</span> to review.</p>
         
         ${data.user?.role ? `
           <div class="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-sm backdrop-blur-sm border border-white/10">
@@ -194,8 +195,8 @@ export function renderDashboardPage(data: DashboardPageData): string {
           ${analyticsPanel}
         </div>
         <div class="flex flex-col gap-6">
-           <div class="card p-6 rounded-lg shadow-sm">
-             <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Quick Actions</h3>
+           <div class="card p-6 rounded-lg shadow-theme">
+             <h3 class="text-lg font-medium mb-4 text-theme-text">Quick Actions</h3>
              ${actionsGrid}
            </div>
            <!-- You could add more widgets here -->

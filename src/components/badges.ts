@@ -11,13 +11,14 @@ export interface BadgeProps {
 export function renderBadge(props: BadgeProps): string {
   const { label, variant = 'default', size = 'md', className = '', rounded = false } = props
 
-  const variantClasses = {
-    default: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
-    primary: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    warning: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-    error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    neutral: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+  // We use inline styles to leverage the CSS variables with transparency
+  const variantStyles = {
+    default: 'background-color: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);',
+    primary: 'background-color: color-mix(in srgb, var(--color-primary), transparent 85%); color: var(--color-primary);',
+    success: 'background-color: color-mix(in srgb, var(--color-success), transparent 85%); color: var(--color-success);',
+    warning: 'background-color: color-mix(in srgb, var(--color-warning), transparent 85%); color: var(--color-warning);',
+    error: 'background-color: color-mix(in srgb, var(--color-error), transparent 85%); color: var(--color-error);',
+    neutral: 'background-color: var(--color-background); color: var(--color-text-secondary); border: 1px solid var(--color-border);'
   }
 
   const sizeClasses = {
@@ -28,7 +29,7 @@ export function renderBadge(props: BadgeProps): string {
   const roundClass = rounded ? 'rounded-full' : 'rounded'
 
   return `
-    <span class="inline-flex items-center font-medium ${roundClass} ${variantClasses[variant]} ${sizeClasses[size]} ${className}">
+    <span class="inline-flex items-center font-medium ${roundClass} ${sizeClasses[size]} ${className}" style="${variantStyles[variant]}">
       ${escapeHtml(label)}
     </span>
   `
